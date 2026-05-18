@@ -13,7 +13,7 @@ often include several layers at once:
 | Sensor registers | Register constants, initialization tables, PID/VER detection, reset | Yes |
 | SCCB/I2C helpers | `read_reg`, `write_reg`, batch register writes | Yes |
 | Output mode setup | Resolution, pixel format, JPEG enable, clock divisors | Yes |
-| Image controls | Brightness, contrast, saturation, AWB, exposure, gain, mirror, flip, test pattern | Yes, as typed sensor controls |
+| Image controls | Brightness, contrast, saturation, AWB, exposure, gain, DSP correction blocks, mirror, flip, test pattern | Yes, implemented as typed sensor controls |
 | XCLK and power pins | XCLK PWM/LEDC/MCO/PIO, reset pin, power-down pin | No |
 | Parallel capture | D0-D7, PCLK, VSYNC, HREF, DCMI, LCD_CAM, PIO, DMA | No |
 | Frame buffers | Heap/PSRAM buffers, double buffering, frame queues | No |
@@ -46,6 +46,43 @@ This keeps the OV2640 driver reusable on ESP32-S3, STM32, RP2040, Linux I2C
 adapters, and other Rust embedded targets. Each target still needs its own
 parallel capture implementation to receive image data from the sensor.
 
+## C Driver Parity
+
+The first Rust API set mirrors the OV2640 sensor-control functions from
+Espressif's Apache-2.0 `esp32-camera` driver where the C implementation writes
+real OV2640 registers:
+
+| C driver function | Rust method |
+|---|---|
+| `set_brightness` | `set_brightness(ControlLevel)` |
+| `set_contrast` | `set_contrast(ControlLevel)` |
+| `set_saturation` | `set_saturation(ControlLevel)` |
+| `set_special_effect` | `set_special_effect(SpecialEffect)` |
+| `set_wb_mode` | `set_white_balance_mode(WhiteBalanceMode)` |
+| `set_whitebal` | `set_auto_white_balance(bool)` |
+| `set_awb_gain` | `set_awb_gain(bool)` |
+| `set_exposure_ctrl` | `set_auto_exposure(bool)` |
+| `set_aec2` | `set_aec2(bool)` |
+| `set_ae_level` | `set_exposure_level(ControlLevel)` |
+| `set_aec_value` | `set_exposure_value(u16)` |
+| `set_gain_ctrl` | `set_auto_gain(bool)` |
+| `set_agc_gain` | `set_agc_gain(u8)` |
+| `set_gainceiling` | `set_gain_ceiling(GainCeiling)` |
+| `set_raw_gma` | `set_raw_gamma(bool)` |
+| `set_lenc` | `set_lens_correction(bool)` |
+| `set_dcw` | `set_downsize_crop_window(bool)` |
+| `set_bpc` | `set_bad_pixel_correction(bool)` |
+| `set_wpc` | `set_white_pixel_correction(bool)` |
+| `set_hmirror` | `set_horizontal_mirror(bool)` |
+| `set_vflip` | `set_vertical_flip(bool)` |
+| `set_colorbar` | `set_color_bar(bool)` |
+| `set_quality` | `set_jpeg_quality(u8)` |
+
+Espressif's OV2640 `set_sharpness` and `set_denoise` hooks currently return
+unsupported in that C driver, so this crate does not expose typed methods for
+them yet. They should only be added after the underlying register behavior is
+validated.
+
 ## Public API Boundary
 
 This crate should expose:
@@ -54,7 +91,10 @@ This crate should expose:
 - Sensor identification and reset.
 - Low-level register read/write for bring-up and debugging.
 - Typed output modes such as QVGA YUV422, QVGA RGB565, QVGA JPEG, and VGA JPEG.
-- Typed image controls for sensor-level behavior.
+- Typed image controls for sensor-level behavior. The first API set includes
+  brightness, contrast, saturation, special effects, white balance, exposure,
+  gain, raw gamma, lens correction, DCW, bad/white pixel correction,
+  mirror/flip, color bar, and JPEG quality.
 
 This crate should not expose:
 

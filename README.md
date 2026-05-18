@@ -21,6 +21,9 @@ Included:
 - Verified QVGA 320x240 YUV422, RGB565, and JPEG configuration helpers.
 - Experimental VGA 640x480 JPEG configuration helper.
 - JPEG tuning parameters used by the current GOOUUU ESP32-S3-CAM baseline.
+- Typed sensor controls for brightness, contrast, saturation, special effect,
+  white balance, exposure, gain, DSP correction blocks, mirror/flip, color bar,
+  and JPEG quality.
 
 Not included:
 
@@ -124,6 +127,35 @@ sensor.init_qvga_yuv422(&mut delay)?;
 sensor.init_qvga_rgb565(&mut delay)?;
 ```
 
+Sensor controls stay at the OV2640 register layer and can be used with any
+capture backend. These methods mirror the sensor-register writes from
+Espressif's OV2640 driver; the visible effect of each control should still be
+validated on the target board and capture backend:
+
+```rust
+use esp32_cam_ov2640::{ControlLevel, GainCeiling, SpecialEffect, WhiteBalanceMode};
+
+sensor.set_brightness(ControlLevel::Plus1)?;
+sensor.set_contrast(ControlLevel::Zero)?;
+sensor.set_saturation(ControlLevel::Plus2)?;
+sensor.set_special_effect(SpecialEffect::None)?;
+sensor.set_white_balance_mode(WhiteBalanceMode::Auto)?;
+sensor.set_auto_white_balance(true)?;
+sensor.set_auto_exposure(true)?;
+sensor.set_exposure_level(ControlLevel::Zero)?;
+sensor.set_auto_gain(true)?;
+sensor.set_gain_ceiling(GainCeiling::X8)?;
+sensor.set_raw_gamma(true)?;
+sensor.set_lens_correction(true)?;
+sensor.set_bad_pixel_correction(true)?;
+sensor.set_white_pixel_correction(true)?;
+sensor.set_downsize_crop_window(true)?;
+sensor.set_horizontal_mirror(false)?;
+sensor.set_vertical_flip(false)?;
+sensor.set_color_bar(false)?;
+sensor.set_jpeg_quality(0x0c)?;
+```
+
 ## Integration Contract
 
 The consuming board/application must provide:
@@ -143,10 +175,9 @@ crate boundary should move ESP32-S3 LCD_CAM/GDMA capture into a separate
 converted to use this sensor API directly.
 
 The planned sensor-level API work is tracked in
-[docs/roadmap.md](docs/roadmap.md). The next priority is to add typed controls
-for brightness, contrast, saturation, white balance, exposure, gain, mirror,
-flip, and test patterns without pulling any ESP32-specific capture code into
-this crate.
+[docs/roadmap.md](docs/roadmap.md). The first typed control set is implemented;
+the next priority is broader frame-size coverage and hardware validation of each
+control across JPEG and uncompressed modes.
 
 ## License
 

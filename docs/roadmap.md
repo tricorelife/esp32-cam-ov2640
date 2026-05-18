@@ -7,20 +7,29 @@ portion of a mature C OV2640 driver while preserving a portable Rust boundary.
 
 Add typed controls that map to OV2640 register writes:
 
-- Brightness.
-- Contrast.
-- Saturation.
-- Automatic white balance enable/disable.
-- White balance mode.
-- Automatic exposure enable/disable.
-- Exposure compensation / AE level.
-- Manual exposure value where practical.
-- Automatic gain enable/disable.
-- Gain ceiling.
-- Mirror and vertical flip.
-- Color bar / test pattern.
-- Lens correction, gamma, bad-pixel and white-pixel correction toggles if
-  register behavior is verified.
+- Brightness. Implemented.
+- Contrast. Implemented.
+- Saturation. Implemented.
+- Special effects. Implemented.
+- Automatic white balance enable/disable. Implemented.
+- White balance mode. Implemented.
+- Automatic exposure enable/disable. Implemented.
+- Exposure compensation / AE level. Implemented.
+- Manual exposure value. Implemented with the OV2640 0..=1200 range used by
+  Espressif's driver.
+- Automatic gain enable/disable. Implemented.
+- Manual AGC gain. Implemented with the OV2640 0..=30 table used by
+  Espressif's driver.
+- Gain ceiling. Implemented.
+- Raw gamma toggle. Implemented.
+- Lens correction toggle. Implemented.
+- Downsize/crop/window toggle. Implemented.
+- Bad-pixel correction toggle. Implemented.
+- White-pixel correction toggle. Implemented.
+- Mirror and vertical flip. Implemented.
+- Color bar / test pattern. Implemented.
+- Sharpness and denoise remain unimplemented because Espressif's OV2640 C
+  driver currently marks those hooks unsupported.
 
 Add output coverage:
 
@@ -33,7 +42,8 @@ Add output coverage:
 
 Add documentation:
 
-- Register source notes for each control group.
+- Register source notes for each control group. Implemented in API docs and
+  `docs/driver-scope.md`.
 - Per-mode expected width, height, format, and frame timing assumptions.
 - Platform integration examples that do not depend on ESP32-specific types.
 

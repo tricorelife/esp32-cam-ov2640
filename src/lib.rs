@@ -12,5 +12,6 @@ mod driver;
 pub mod registers;
 
 pub use driver::{
-    DetectedSensor, Error, ImageFormat, JpegConfig, OutputConfig, Ov2640, PixelClock, Resolution,
+    ControlLevel, DetectedSensor, Error, GainCeiling, ImageFormat, JpegConfig, OutputConfig,
+    Ov2640, PixelClock, Resolution, SpecialEffect, WhiteBalanceMode,
 };

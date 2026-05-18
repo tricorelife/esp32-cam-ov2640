@@ -8,6 +8,11 @@ delay traits.
 
 ## Scope
 
+This crate intentionally covers the **sensor register layer** only. Common C
+camera drivers often bundle the whole camera stack into one component; this
+Rust crate keeps the portable OV2640 logic separate from board and SoC capture
+code.
+
 Included:
 
 - OV2640 PID/VER detection.
@@ -26,6 +31,9 @@ Not included:
 
 Those pieces are board/SoC/application concerns and remain in the consuming
 project.
+
+See [docs/driver-scope.md](docs/driver-scope.md) for the mapping from common C
+camera driver responsibilities to the Rust crate split used here.
 
 ## Current Verified Baseline
 
@@ -133,6 +141,12 @@ This is an extracted first crate boundary, not a complete camera stack. The next
 crate boundary should move ESP32-S3 LCD_CAM/GDMA capture into a separate
 `esp32-cam` or board-support crate after the current examples have been
 converted to use this sensor API directly.
+
+The planned sensor-level API work is tracked in
+[docs/roadmap.md](docs/roadmap.md). The next priority is to add typed controls
+for brightness, contrast, saturation, white balance, exposure, gain, mirror,
+flip, and test patterns without pulling any ESP32-specific capture code into
+this crate.
 
 ## License
 

@@ -6,3 +6,5 @@
 - Supports OV2640 PID/VER detection.
 - Supports QVGA YUV422, QVGA RGB565, QVGA JPEG, and experimental VGA JPEG setup helpers.
 - Keeps board-specific XCLK, DVP capture, DMA, networking, and UI code out of the crate.
+- Documents the intended split between the portable OV2640 sensor layer and
+  future board/SoC capture crates.

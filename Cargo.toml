@@ -9,7 +9,14 @@ repository = "https://github.com/tricorelife/esp32-cam-ov2640"
 readme = "README.md"
 keywords = ["ov2640", "camera", "embedded-hal", "no-std"]
 categories = ["embedded", "hardware-support", "no-std"]
-include = ["Cargo.toml", "README.md", "CHANGELOG.md", "LICENSE-APACHE", "src/**/*.rs"]
+include = [
+    "Cargo.toml",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE-APACHE",
+    "docs/**/*.md",
+    "src/**/*.rs",
+]
 
 [dependencies]
 embedded-hal = "1.0.0"

@@ -1,0 +1,455 @@
+// SPDX-License-Identifier: Apache-2.0
+// Source: https://github.com/espressif/esp32-camera/blob/master/sensors/private_include/ov2640_settings.h
+// Source: https://github.com/espressif/esp32-camera/blob/master/sensors/private_include/ov2640_regs.h
+// Translated to Rust register tables; do not reorder entries.
+//
+// Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#![allow(dead_code)]
+
+pub const BANK_SEL: u8 = 0xff;
+pub const BANK_DSP: u8 = 0x00;
+pub const BANK_SENSOR: u8 = 0x01;
+
+pub const REG_PID: u8 = 0x0a;
+pub const REG_VER: u8 = 0x0b;
+pub const COM7: u8 = 0x12;
+pub const COM7_SRST: u8 = 0x80;
+
+const CLKRC: u8 = 0x11;
+const COM2: u8 = 0x09;
+const COM2_OUT_DRIVE_3X: u8 = 0x02;
+const REG04: u8 = 0x04;
+const REG04_DEFAULT: u8 = 0x28;
+const COM8: u8 = 0x13;
+const COM8_DEFAULT: u8 = 0xc0;
+const COM8_BNDF_EN: u8 = 0x20;
+const COM8_AGC_EN: u8 = 0x04;
+const COM8_AEC_EN: u8 = 0x01;
+const COM9: u8 = 0x14;
+const COM9_DEFAULT: u8 = 0x08;
+const COM9_AGC_GAIN_8X: u8 = 0x02;
+const ARCOM2: u8 = 0x34;
+const COM4: u8 = 0x0d;
+const AEW: u8 = 0x24;
+const AEB: u8 = 0x25;
+const VV: u8 = 0x26;
+const HISTO_LOW: u8 = 0x61;
+const HISTO_HIGH: u8 = 0x62;
+const BD50: u8 = 0x4f;
+const BD60: u8 = 0x50;
+const COM7_RES_CIF: u8 = 0x20;
+const COM7_RES_SVGA: u8 = 0x40;
+const HSTART: u8 = 0x17;
+const HSTOP: u8 = 0x18;
+const VSTART: u8 = 0x19;
+const VSTOP: u8 = 0x1a;
+const COM1: u8 = 0x03;
+const REG32: u8 = 0x32;
+const REG32_CIF: u8 = 0x89;
+const REG32_SVGA: u8 = 0x09;
+const MC_BIST: u8 = 0xf9;
+const MC_BIST_RESET: u8 = 0x80;
+const MC_BIST_BOOT_ROM_SEL: u8 = 0x40;
+const RESET: u8 = 0xe0;
+const RESET_JPEG: u8 = 0x10;
+const RESET_DVP: u8 = 0x04;
+const HSIZE: u8 = 0x51;
+const VSIZE: u8 = 0x52;
+const XOFFL: u8 = 0x53;
+const YOFFL: u8 = 0x54;
+const VHYX: u8 = 0x55;
+const TEST: u8 = 0x57;
+const ZMOW: u8 = 0x5a;
+const ZMOH: u8 = 0x5b;
+const ZMHH: u8 = 0x5c;
+const CTRL2: u8 = 0x86;
+const CTRL2_DCW_EN: u8 = 0x20;
+const CTRL3: u8 = 0x87;
+const CTRL3_WPC_EN: u8 = 0x40;
+const CTRLI: u8 = 0x50;
+const CTRLI_LP_DP: u8 = 0x80;
+pub const R_DVP_SP: u8 = 0xd3;
+const R_DVP_SP_AUTO_MODE: u8 = 0x80;
+const BPADDR: u8 = 0x7c;
+const BPDATA: u8 = 0x7d;
+const CTRL1: u8 = 0xc3;
+pub const QS: u8 = 0x44;
+const IMAGE_MODE: u8 = 0xda;
+const IMAGE_MODE_YUV422: u8 = 0x00;
+const IMAGE_MODE_RGB565: u8 = 0x08;
+const IMAGE_MODE_JPEG_EN: u8 = 0x10;
+const IMAGE_MODE_HREF_VSYNC: u8 = 0x02;
+const R_BYPASS: u8 = 0x05;
+const R_BYPASS_DSP_EN: u8 = 0x00;
+const R_BYPASS_DSP_BYPAS: u8 = 0x01;
+
+pub const END: (u8, u8) = (0, 0);
+
+const fn com9_agc_set(value: u8) -> u8 {
+    COM9_DEFAULT | (value << 5)
+}
+
+const fn vv_agc_th_set(high: u8, low: u8) -> u8 {
+    (high << 4) | (low & 0x0f)
+}
+
+/// Espressif OV2640 CIF default settings: 30 fps at 24 MHz XCLK.
+pub const OV2640_SETTINGS_CIF: &[(u8, u8)] = &[
+    (BANK_SEL, BANK_DSP),
+    (0x2c, 0xff),
+    (0x2e, 0xdf),
+    (BANK_SEL, BANK_SENSOR),
+    (0x3c, 0x32),
+    (CLKRC, 0x01),
+    (COM2, COM2_OUT_DRIVE_3X),
+    (REG04, REG04_DEFAULT),
+    (
+        COM8,
+        COM8_DEFAULT | COM8_BNDF_EN | COM8_AGC_EN | COM8_AEC_EN,
+    ),
+    (COM9, com9_agc_set(COM9_AGC_GAIN_8X)),
+    (0x2c, 0x0c),
+    (0x33, 0x78),
+    (0x3a, 0x33),
+    (0x3b, 0xfb),
+    (0x3e, 0x00),
+    (0x43, 0x11),
+    (0x16, 0x10),
+    (0x39, 0x92),
+    (0x35, 0xda),
+    (0x22, 0x1a),
+    (0x37, 0xc3),
+    (0x23, 0x00),
+    (ARCOM2, 0xc0),
+    (0x06, 0x88),
+    (0x07, 0xc0),
+    (COM4, 0x87),
+    (0x0e, 0x41),
+    (0x4c, 0x00),
+    (0x4a, 0x81),
+    (0x21, 0x99),
+    (AEW, 0x40),
+    (AEB, 0x38),
+    (VV, vv_agc_th_set(8, 2)),
+    (0x5c, 0x00),
+    (0x63, 0x00),
+    (HISTO_LOW, 0x70),
+    (HISTO_HIGH, 0x80),
+    (0x7c, 0x05),
+    (0x20, 0x80),
+    (0x28, 0x30),
+    (0x6c, 0x00),
+    (0x6d, 0x80),
+    (0x6e, 0x00),
+    (0x70, 0x02),
+    (0x71, 0x94),
+    (0x73, 0xc1),
+    (0x3d, 0x34),
+    (0x5a, 0x57),
+    (BD50, 0xbb),
+    (BD60, 0x9c),
+    (COM7, COM7_RES_CIF),
+    (HSTART, 0x11),
+    (HSTOP, 0x43),
+    (VSTART, 0x00),
+    (VSTOP, 0x25),
+    (REG32, 0x89),
+    (0x37, 0xc0),
+    (BD50, 0xca),
+    (BD60, 0xa8),
+    (0x6d, 0x00),
+    (0x3d, 0x38),
+    (BANK_SEL, BANK_DSP),
+    (0xe5, 0x7f),
+    (MC_BIST, MC_BIST_RESET | MC_BIST_BOOT_ROM_SEL),
+    (0x41, 0x24),
+    (RESET, RESET_JPEG | RESET_DVP),
+    (0x76, 0xff),
+    (0x33, 0xa0),
+    (0x42, 0x20),
+    (0x43, 0x18),
+    (0x4c, 0x00),
+    (CTRL3, CTRL3_WPC_EN | 0x10),
+    (0x88, 0x3f),
+    (0xd7, 0x03),
+    (0xd9, 0x10),
+    (R_DVP_SP, R_DVP_SP_AUTO_MODE | 0x02),
+    (0xc8, 0x08),
+    (0xc9, 0x80),
+    (BPADDR, 0x00),
+    (BPDATA, 0x00),
+    (BPADDR, 0x03),
+    (BPDATA, 0x48),
+    (BPDATA, 0x48),
+    (BPADDR, 0x08),
+    (BPDATA, 0x20),
+    (BPDATA, 0x10),
+    (BPDATA, 0x0e),
+    (0x90, 0x00),
+    (0x91, 0x0e),
+    (0x91, 0x1a),
+    (0x91, 0x31),
+    (0x91, 0x5a),
+    (0x91, 0x69),
+    (0x91, 0x75),
+    (0x91, 0x7e),
+    (0x91, 0x88),
+    (0x91, 0x8f),
+    (0x91, 0x96),
+    (0x91, 0xa3),
+    (0x91, 0xaf),
+    (0x91, 0xc4),
+    (0x91, 0xd7),
+    (0x91, 0xe8),
+    (0x91, 0x20),
+    (0x92, 0x00),
+    (0x93, 0x06),
+    (0x93, 0xe3),
+    (0x93, 0x05),
+    (0x93, 0x05),
+    (0x93, 0x00),
+    (0x93, 0x04),
+    (0x93, 0x00),
+    (0x93, 0x00),
+    (0x93, 0x00),
+    (0x93, 0x00),
+    (0x93, 0x00),
+    (0x93, 0x00),
+    (0x93, 0x00),
+    (0x96, 0x00),
+    (0x97, 0x08),
+    (0x97, 0x19),
+    (0x97, 0x02),
+    (0x97, 0x0c),
+    (0x97, 0x24),
+    (0x97, 0x30),
+    (0x97, 0x28),
+    (0x97, 0x26),
+    (0x97, 0x02),
+    (0x97, 0x98),
+    (0x97, 0x80),
+    (0x97, 0x00),
+    (0x97, 0x00),
+    (0xa4, 0x00),
+    (0xa8, 0x00),
+    (0xc5, 0x11),
+    (0xc6, 0x51),
+    (0xbf, 0x80),
+    (0xc7, 0x10),
+    (0xb6, 0x66),
+    (0xb8, 0xa5),
+    (0xb7, 0x64),
+    (0xb9, 0x7c),
+    (0xb3, 0xaf),
+    (0xb4, 0x97),
+    (0xb5, 0xff),
+    (0xb0, 0xc5),
+    (0xb1, 0x94),
+    (0xb2, 0x0f),
+    (0xc4, 0x5c),
+    (CTRL1, 0xfd),
+    (0x7f, 0x00),
+    (0xe5, 0x1f),
+    (0xe1, 0x67),
+    (0xdd, 0x7f),
+    (IMAGE_MODE, 0x00),
+    (RESET, 0x00),
+    (R_BYPASS, R_BYPASS_DSP_EN),
+    END,
+];
+
+/// Espressif OV2640 CIF sensor mode switch table.
+pub const OV2640_SETTINGS_TO_CIF: &[(u8, u8)] = &[
+    (BANK_SEL, BANK_SENSOR),
+    (COM7, COM7_RES_CIF),
+    (COM1, 0x0a),
+    (REG32, REG32_CIF),
+    (HSTART, 0x11),
+    (HSTOP, 0x43),
+    (VSTART, 0x00),
+    (VSTOP, 0x25),
+    (BD50, 0xca),
+    (BD60, 0xa8),
+    (0x5a, 0x23),
+    (0x6d, 0x00),
+    (0x3d, 0x38),
+    (0x39, 0x92),
+    (0x35, 0xda),
+    (0x22, 0x1a),
+    (0x37, 0xc3),
+    (0x23, 0x00),
+    (ARCOM2, 0xc0),
+    (0x06, 0x88),
+    (0x07, 0xc0),
+    (COM4, 0x87),
+    (0x0e, 0x41),
+    (0x4c, 0x00),
+    (BANK_SEL, BANK_DSP),
+    (RESET, RESET_DVP),
+    (0xc0, 0x32),
+    (0xc1, 0x25),
+    (0x8c, 0x00),
+    (HSIZE, 0x64),
+    (VSIZE, 0x4a),
+    (XOFFL, 0x00),
+    (YOFFL, 0x00),
+    (VHYX, 0x00),
+    (TEST, 0x00),
+    (CTRL2, CTRL2_DCW_EN | 0x1d),
+    (CTRLI, CTRLI_LP_DP),
+    END,
+];
+
+/// Espressif OV2640 SVGA sensor mode switch table.
+pub const OV2640_SETTINGS_TO_SVGA: &[(u8, u8)] = &[
+    (BANK_SEL, BANK_SENSOR),
+    (COM7, COM7_RES_SVGA),
+    (COM1, 0x0a),
+    (REG32, REG32_SVGA),
+    (HSTART, 0x11),
+    (HSTOP, 0x43),
+    (VSTART, 0x00),
+    (VSTOP, 0x4b),
+    (0x37, 0xc0),
+    (BD50, 0xca),
+    (BD60, 0xa8),
+    (0x5a, 0x23),
+    (0x6d, 0x00),
+    (0x3d, 0x38),
+    (0x39, 0x92),
+    (0x35, 0xda),
+    (0x22, 0x1a),
+    (0x37, 0xc3),
+    (0x23, 0x00),
+    (ARCOM2, 0xc0),
+    (0x06, 0x88),
+    (0x07, 0xc0),
+    (COM4, 0x87),
+    (0x0e, 0x41),
+    (0x42, 0x03),
+    (0x4c, 0x00),
+    (BANK_SEL, BANK_DSP),
+    (RESET, RESET_DVP),
+    (0xc0, 0x64),
+    (0xc1, 0x4b),
+    (0x8c, 0x00),
+    (HSIZE, 0xc8),
+    (VSIZE, 0x96),
+    (XOFFL, 0x00),
+    (YOFFL, 0x00),
+    (VHYX, 0x00),
+    (TEST, 0x00),
+    (CTRL2, CTRL2_DCW_EN | 0x1d),
+    (CTRLI, CTRLI_LP_DP),
+    END,
+];
+
+/// QVGA 320x240 window sequence derived from esp32-camera `set_window`.
+pub const OV2640_QVGA_WINDOW: &[(u8, u8)] = &[
+    (BANK_SEL, BANK_DSP),
+    (HSIZE, 0x64),
+    (VSIZE, 0x4a),
+    (XOFFL, 0x00),
+    (YOFFL, 0x00),
+    (VHYX, 0x00),
+    (TEST, 0x00),
+    (ZMOW, 0x50),
+    (ZMOH, 0x3c),
+    (ZMHH, 0x00),
+    END,
+];
+
+/// VGA 640x480 window sequence derived from esp32-camera `set_window`.
+pub const OV2640_VGA_WINDOW: &[(u8, u8)] = &[
+    (BANK_SEL, BANK_DSP),
+    (HSIZE, 0xc8),
+    (VSIZE, 0x96),
+    (XOFFL, 0x00),
+    (YOFFL, 0x00),
+    (VHYX, 0x00),
+    (TEST, 0x00),
+    (ZMOW, 0xa0),
+    (ZMOH, 0x78),
+    (ZMHH, 0x00),
+    END,
+];
+
+/// Espressif OV2640 YUV422 output-format table.
+pub const OV2640_SETTINGS_YUV422: &[(u8, u8)] = &[
+    (BANK_SEL, BANK_DSP),
+    (RESET, RESET_DVP),
+    (IMAGE_MODE, IMAGE_MODE_YUV422),
+    (0xd7, 0x01),
+    (0xe1, 0x67),
+    (RESET, 0x00),
+    END,
+];
+
+/// Espressif OV2640 RGB565 output-format table.
+pub const OV2640_SETTINGS_RGB565: &[(u8, u8)] = &[
+    (BANK_SEL, BANK_DSP),
+    (RESET, RESET_DVP),
+    (IMAGE_MODE, IMAGE_MODE_RGB565),
+    (0xd7, 0x03),
+    (0xe1, 0x77),
+    (RESET, 0x00),
+    END,
+];
+
+/// Espressif OV2640 JPEG output-format table (`ov2640_settings_jpeg3`).
+pub const OV2640_SETTINGS_JPEG: &[(u8, u8)] = &[
+    (BANK_SEL, BANK_DSP),
+    (RESET, RESET_JPEG | RESET_DVP),
+    (IMAGE_MODE, IMAGE_MODE_JPEG_EN | IMAGE_MODE_HREF_VSYNC),
+    (0xd7, 0x03),
+    (0xe1, 0x77),
+    (0xe5, 0x1f),
+    (0xd9, 0x10),
+    (0xdf, 0x80),
+    (0x33, 0x80),
+    (0x3c, 0x10),
+    (0xeb, 0x30),
+    (0xdd, 0x7f),
+    (QS, 0x0c),
+    (RESET, 0x00),
+    END,
+];
+
+/// ESP32-S3 QVGA/YUV422 clock and bypass sequence from esp32-camera.
+pub const OV2640_QVGA_YUV422_CLOCKS: &[(u8, u8)] = &[
+    (BANK_SEL, BANK_SENSOR),
+    (CLKRC, 0x83),
+    (BANK_SEL, BANK_DSP),
+    (R_DVP_SP, 0x88),
+    (R_BYPASS, R_BYPASS_DSP_EN),
+    END,
+];
+
+/// ESP32-S3 QVGA/JPEG clock and bypass sequence from esp32-camera.
+pub const OV2640_QVGA_JPEG_CLOCKS: &[(u8, u8)] = &[
+    (BANK_SEL, BANK_SENSOR),
+    (CLKRC, 0x00),
+    (BANK_SEL, BANK_DSP),
+    (R_DVP_SP, 0x08),
+    (R_BYPASS, R_BYPASS_DSP_EN),
+    END,
+];
+
+/// ESP32-S3 VGA/JPEG clock and bypass sequence from esp32-camera.
+pub const OV2640_VGA_JPEG_CLOCKS: &[(u8, u8)] = OV2640_QVGA_JPEG_CLOCKS;
+
+pub const OV2640_DSP_BYPASS_ON: &[(u8, u8)] =
+    &[(BANK_SEL, BANK_DSP), (R_BYPASS, R_BYPASS_DSP_BYPAS), END];

@@ -1,0 +1,15 @@
+[package]
+name = "esp32-cam-ov2640"
+version = "0.1.0"
+edition = "2021"
+authors = ["harryma <zchtech003@gmail.com>"]
+license = "Apache-2.0"
+description = "no_std embedded-hal OV2640 sensor register driver"
+repository = "https://github.com/tricorelife/esp32-cam-ov2640"
+readme = "README.md"
+keywords = ["ov2640", "camera", "embedded-hal", "no-std"]
+categories = ["embedded", "hardware-support", "no-std"]
+include = ["Cargo.toml", "README.md", "CHANGELOG.md", "LICENSE-APACHE", "src/**/*.rs"]
+
+[dependencies]
+embedded-hal = "1.0.0"

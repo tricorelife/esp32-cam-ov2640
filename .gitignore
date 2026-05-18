@@ -1,0 +1,11 @@
+# Rust build output
+/target/
+Cargo.lock
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Cargo package output
+*.crate

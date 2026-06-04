@@ -1,7 +1,25 @@
 # Roadmap
 
-This roadmap focuses on making `esp32-cam-ov2640` comparable to the sensor
-portion of a mature C OV2640 driver while preserving a portable Rust boundary.
+This roadmap focuses on making `esp32-cam-ov2640` comparable to the portable
+portion of a mature C camera driver while preserving a Rust boundary that can be
+used across chips and projects.
+
+## 0.1.x - Portable Stack Boundary
+
+Implemented:
+
+- `CameraSensor` trait for sensor probe/reset/output setup.
+- `SensorControls` trait and typed `SensorControl` enum.
+- `CameraCapture` trait for chip-specific capture backends.
+- `FrameSink` trait for transports/storage/model pipelines.
+- `FrameSize`, `FrameFormat`, `CaptureConfig`, `CaptureInfo`, `FrameInfo`,
+  `Frame`, and fixed-capacity `FrameSlot`.
+- Incremental `JpegScanner` and `JpegAssembler`.
+- Fixed-capacity `FrameQueue` metadata queue for latest-frame/backpressure
+  policies.
+- `CameraStack` helper that initializes a sensor, starts capture, captures
+  frames, validates JPEG frames, and writes frames to a sink.
+- `examples/stack_mock.rs` hardware-free integration example.
 
 ## 0.1.x - Sensor Driver Completeness
 
@@ -47,30 +65,37 @@ Add documentation:
 - Per-mode expected width, height, format, and frame timing assumptions.
 - Platform integration examples that do not depend on ESP32-specific types.
 
-## 0.2.x - Shared Sensor Traits
+## 0.2.x - Hardware Capture Adapters
 
-Introduce or align with a small trait layer for camera sensors:
+Add external adapter crates or examples that implement `CameraCapture`:
 
-- `probe`.
-- `reset`.
-- `configure_output`.
-- `set_control`.
-- `current_output`.
-- `sensor_id`.
+- ESP32-S3 LCD_CAM/GDMA adapter.
+- STM32 DCMI/DMA adapter.
+- RP2040 PIO/DMA adapter.
+- Linux I2C + V4L2 adapter for desktop validation.
 
-This should support additional sensor crates without forcing users into a
-single SoC or board crate.
+These should depend on this crate; this crate should not depend on their HAL
+types.
+
+## 0.3.x - Multi-Sensor Traits
+
+Align `CameraSensor` and `SensorControls` with additional sensor crates:
+
+- OV5640.
+- OV3660.
+- GC0308.
+- Other SCCB/I2C DVP sensors.
 
 ## Separate Crates, Not This Crate
 
 The following work is important but intentionally out of scope for
 `esp32-cam-ov2640`:
 
-- ESP32-S3 LCD_CAM/GDMA capture helper.
-- RP2040 PIO/DMA capture helper.
-- STM32 DCMI/DMA capture helper.
+- Concrete ESP32-S3 LCD_CAM/GDMA capture helper.
+- Concrete RP2040 PIO/DMA capture helper.
+- Concrete STM32 DCMI/DMA capture helper.
 - Board pin-map crates.
-- JPEG frame extraction, buffering, and streaming protocols.
+- Streaming protocols.
 - Browser UI, model workers, or cloud integration.
 
 Those should build on top of the portable sensor crate rather than being added

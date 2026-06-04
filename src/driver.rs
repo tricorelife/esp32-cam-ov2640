@@ -630,3 +630,70 @@ where
         Ok(())
     }
 }
+
+impl<I2C> crate::traits::CameraSensor for Ov2640<I2C>
+where
+    I2C: I2c,
+{
+    type Error = Error<I2C::Error>;
+    type Id = DetectedSensor;
+
+    fn probe(&mut self) -> Result<Self::Id, Self::Error> {
+        self.verify_id()
+    }
+
+    fn reset<D>(&mut self, delay: &mut D) -> Result<(), Self::Error>
+    where
+        D: DelayNs,
+    {
+        Ov2640::reset(self, delay)
+    }
+
+    fn configure_output(&mut self, config: OutputConfig) -> Result<(), Self::Error> {
+        Ov2640::configure_output(self, config)
+    }
+
+    fn init<D>(&mut self, delay: &mut D, config: OutputConfig) -> Result<Self::Id, Self::Error>
+    where
+        D: DelayNs,
+    {
+        Ov2640::init(self, delay, config)
+    }
+}
+
+impl<I2C> crate::traits::SensorControls for Ov2640<I2C>
+where
+    I2C: I2c,
+{
+    type Error = Error<I2C::Error>;
+
+    fn set_control(&mut self, control: crate::traits::SensorControl) -> Result<(), Self::Error> {
+        use crate::traits::SensorControl;
+
+        match control {
+            SensorControl::Brightness(level) => self.set_brightness(level),
+            SensorControl::Contrast(level) => self.set_contrast(level),
+            SensorControl::Saturation(level) => self.set_saturation(level),
+            SensorControl::SpecialEffect(effect) => self.set_special_effect(effect),
+            SensorControl::WhiteBalanceMode(mode) => self.set_white_balance_mode(mode),
+            SensorControl::AutoWhiteBalance(enable) => self.set_auto_white_balance(enable),
+            SensorControl::AwbGain(enable) => self.set_awb_gain(enable),
+            SensorControl::AutoExposure(enable) => self.set_auto_exposure(enable),
+            SensorControl::Aec2(enable) => self.set_aec2(enable),
+            SensorControl::ExposureLevel(level) => self.set_exposure_level(level),
+            SensorControl::ExposureValue(value) => self.set_exposure_value(value),
+            SensorControl::AutoGain(enable) => self.set_auto_gain(enable),
+            SensorControl::AgcGain(gain) => self.set_agc_gain(gain),
+            SensorControl::GainCeiling(ceiling) => self.set_gain_ceiling(ceiling),
+            SensorControl::RawGamma(enable) => self.set_raw_gamma(enable),
+            SensorControl::LensCorrection(enable) => self.set_lens_correction(enable),
+            SensorControl::DownsizeCropWindow(enable) => self.set_downsize_crop_window(enable),
+            SensorControl::BadPixelCorrection(enable) => self.set_bad_pixel_correction(enable),
+            SensorControl::WhitePixelCorrection(enable) => self.set_white_pixel_correction(enable),
+            SensorControl::HorizontalMirror(enable) => self.set_horizontal_mirror(enable),
+            SensorControl::VerticalFlip(enable) => self.set_vertical_flip(enable),
+            SensorControl::ColorBar(enable) => self.set_color_bar(enable),
+            SensorControl::JpegQuality(qs) => self.set_jpeg_quality(qs),
+        }
+    }
+}

@@ -1,17 +1,19 @@
 # esp32-cam-ov2640
 
-`no_std` OV2640 sensor register driver for Rust embedded projects.
+`no_std` OV2640 sensor driver plus portable embedded camera stack primitives.
 
-This crate is the reusable sensor layer extracted from the GOOUUU ESP32-S3-CAM
-bring-up work. It depends only on `embedded-hal` 1.0 for blocking I2C/SCCB and
-delay traits.
+This crate is the reusable camera layer extracted from the GOOUUU
+ESP32-S3-CAM bring-up work. It keeps the OV2640 register driver portable and
+adds generic frame, JPEG, queue, capture, sink, and pipeline APIs that other
+MCU/HAL projects can implement around their own camera peripherals.
 
 ## Scope
 
-This crate intentionally covers the **sensor register layer** only. Common C
-camera drivers often bundle the whole camera stack into one component; this
-Rust crate keeps the portable OV2640 logic separate from board and SoC capture
-code.
+This crate covers the portable parts of an embedded camera stack. Common C
+camera drivers often bundle sensor registers, board pins, DMA, frame buffers,
+JPEG parsing, and network transports into one component. This Rust crate keeps
+the reusable logic in one `no_std` crate and connects chip-specific code through
+small traits.
 
 Included:
 
@@ -24,16 +26,23 @@ Included:
 - Typed sensor controls for brightness, contrast, saturation, special effect,
   white balance, exposure, gain, DSP correction blocks, mirror/flip, color bar,
   and JPEG quality.
+- Generic `CameraSensor`, `SensorControls`, `CameraCapture`, and `FrameSink`
+  traits.
+- Frame metadata and fixed-capacity frame slots for `no_std` applications.
+- Incremental JPEG SOI/EOI scanner and JPEG assembler for DMA stream chunks.
+- Fixed-capacity metadata queue for latest-frame/backpressure policies.
+- `CameraStack` pipeline that wires a sensor and a capture backend together.
 
 Not included:
 
-- XCLK generation.
-- ESP32-S3 LCD_CAM/GDMA capture.
-- Frame buffers, JPEG extraction, or transport.
-- WiFi, network transport, application model workers, or UI code.
+- Concrete XCLK generation for a specific chip.
+- Concrete ESP32-S3 LCD_CAM/GDMA, STM32 DCMI/DMA, RP2040 PIO/DMA, or Linux
+  V4L2 capture implementation.
+- Concrete WiFi, HTTP, RTSP, WebRTC, LiveKit, cloud upload, model worker, or UI
+  implementation.
 
-Those pieces are board/SoC/application concerns and remain in the consuming
-project.
+Those pieces are board/SoC/application concerns. They plug into this crate by
+implementing `CameraCapture` or `FrameSink`.
 
 See [docs/driver-scope.md](docs/driver-scope.md) for the mapping from common C
 camera driver responsibilities to the Rust crate split used here.
@@ -127,6 +136,66 @@ sensor.init_qvga_yuv422(&mut delay)?;
 sensor.init_qvga_rgb565(&mut delay)?;
 ```
 
+## Full Stack Integration
+
+For a complete camera pipeline, keep the sensor driver here and implement the
+capture backend in the target project:
+
+```rust
+use esp32_cam_ov2640::{
+    CameraCapture, CameraStack, CaptureConfig, CaptureInfo, JpegConfig,
+    OutputConfig, Ov2640,
+};
+
+struct MyCapture {
+    // DCMI/LCD_CAM/PIO/V4L2 state owned by the target project.
+}
+
+impl CameraCapture for MyCapture {
+    type Error = MyCaptureError;
+
+    fn start(&mut self, config: CaptureConfig) -> Result<(), Self::Error> {
+        // Configure pins, DMA descriptors, EOF mode, and interrupts.
+        todo!()
+    }
+
+    fn capture_into(&mut self, buffer: &mut [u8]) -> Result<CaptureInfo, Self::Error> {
+        // Fill `buffer` with one full frame and return byte count/sequence.
+        todo!()
+    }
+
+    fn stop(&mut self) -> Result<(), Self::Error> {
+        todo!()
+    }
+}
+
+let sensor = Ov2640::new(i2c);
+let capture = MyCapture { /* ... */ };
+let output = OutputConfig::qvga_jpeg(JpegConfig::default());
+let mut camera = CameraStack::new(sensor, capture, output);
+
+let detected = camera.start(&mut delay)?;
+let frame = camera.capture_jpeg_frame(&mut frame_buffer)?;
+camera.stop()?;
+```
+
+For streaming DMA chunks instead of one full blocking frame, use
+`JpegAssembler`:
+
+```rust
+use esp32_cam_ov2640::JpegAssembler;
+
+let mut assembler = JpegAssembler::new();
+
+for chunk in dma_chunks {
+    if let Some(bytes) = assembler.push_chunk(chunk, &mut frame_buffer)? {
+        // frame_buffer[..bytes] is one complete JPEG frame.
+    }
+}
+```
+
+See `examples/stack_mock.rs` for a hardware-free compileable example.
+
 Sensor controls stay at the OV2640 register layer and can be used with any
 capture backend. These methods mirror the sensor-register writes from
 Espressif's OV2640 driver; the visible effect of each control should still be
@@ -166,18 +235,20 @@ The consuming board/application must provide:
 - Correct DVP wiring and capture polarity for the target MCU.
 - A capture mode that can receive a full frame. On ESP32-S3 JPEG, the verified
   mode is `EofMode::VsyncSignal`.
+- A `CameraCapture` implementation if using `CameraStack`.
 
 ## Status
 
-This is an extracted first crate boundary, not a complete camera stack. The next
-crate boundary should move ESP32-S3 LCD_CAM/GDMA capture into a separate
-`esp32-cam` or board-support crate after the current examples have been
-converted to use this sensor API directly.
+This is now a portable camera stack crate with an OV2640 sensor implementation
+and reusable stack primitives. It is not a chip HAL crate: ESP32-S3
+LCD_CAM/GDMA, STM32 DCMI/DMA, RP2040 PIO/DMA, and Linux V4L2 adapters should be
+implemented in separate crates or applications and connected through
+`CameraCapture`.
 
 The planned sensor-level API work is tracked in
-[docs/roadmap.md](docs/roadmap.md). The first typed control set is implemented;
-the next priority is broader frame-size coverage and hardware validation of each
-control across JPEG and uncompressed modes.
+[docs/roadmap.md](docs/roadmap.md). The first typed control set and portable
+stack boundary are implemented; the next priority is chip-specific capture
+adapters and broader frame-size validation.
 
 ## License
 

@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- Adds portable camera stack primitives on top of the OV2640 register driver:
+  `CameraSensor`, `SensorControls`, `CameraCapture`, `FrameSink`, frame
+  metadata types, fixed-capacity frame slots, JPEG scanner/assembler,
+  fixed-capacity frame metadata queue, and `CameraStack`.
+- Implements the generic sensor/control traits for `Ov2640<I2C>`.
+- Adds `examples/stack_mock.rs` as a hardware-free compileable stack example.
+- Updates docs from "sensor register layer only" to a portable complete stack
+  boundary where chip-specific capture is supplied through traits.
+
 ## 0.1.0 - 2026-05-18
 
 - Initial extracted `no_std` OV2640 sensor register driver.

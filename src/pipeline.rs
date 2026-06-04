@@ -15,6 +15,9 @@ pub enum StackError<SensorError, CaptureError, SinkError = core::convert::Infall
     InvalidJpeg,
 }
 
+pub type StackResult<T, SensorError, CaptureError, SinkError = core::convert::Infallible> =
+    Result<T, StackError<SensorError, CaptureError, SinkError>>;
+
 pub struct CameraStack<SENSOR, CAPTURE> {
     sensor: SENSOR,
     capture: CAPTURE,
@@ -61,7 +64,7 @@ where
     pub fn start<D>(
         &mut self,
         delay: &mut D,
-    ) -> Result<SENSOR::Id, StackError<SENSOR::Error, CAPTURE::Error>>
+    ) -> StackResult<SENSOR::Id, SENSOR::Error, CAPTURE::Error>
     where
         D: DelayNs,
     {
@@ -78,7 +81,7 @@ where
     pub fn capture_frame<'a>(
         &mut self,
         buffer: &'a mut [u8],
-    ) -> Result<Frame<'a>, StackError<SENSOR::Error, CAPTURE::Error>> {
+    ) -> StackResult<Frame<'a>, SENSOR::Error, CAPTURE::Error> {
         let capture = self
             .capture
             .capture_into(buffer)
@@ -97,7 +100,7 @@ where
     pub fn capture_jpeg_frame<'a>(
         &mut self,
         buffer: &'a mut [u8],
-    ) -> Result<Frame<'a>, StackError<SENSOR::Error, CAPTURE::Error>> {
+    ) -> StackResult<Frame<'a>, SENSOR::Error, CAPTURE::Error> {
         if self.capture_config.format != FrameFormat::Jpeg {
             return Err(StackError::ExpectedJpeg);
         }
@@ -110,15 +113,15 @@ where
         Ok(frame)
     }
 
-    pub fn stop(&mut self) -> Result<(), StackError<SENSOR::Error, CAPTURE::Error>> {
+    pub fn stop(&mut self) -> StackResult<(), SENSOR::Error, CAPTURE::Error> {
         self.capture.stop().map_err(StackError::Capture)
     }
 
-    pub fn capture_and_write<'a, SINK>(
+    pub fn capture_and_write<SINK>(
         &mut self,
-        buffer: &'a mut [u8],
+        buffer: &mut [u8],
         sink: &mut SINK,
-    ) -> Result<(), StackError<SENSOR::Error, CAPTURE::Error, SINK::Error>>
+    ) -> StackResult<(), SENSOR::Error, CAPTURE::Error, SINK::Error>
     where
         SINK: FrameSink,
     {
